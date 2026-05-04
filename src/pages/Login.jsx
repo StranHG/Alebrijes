@@ -10,19 +10,42 @@ function Login() {
 
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    if (email === "" || password === "") {
-      setMensaje("⚠️ Completa todos los campos");
-      return;
-    }
+const handleLogin = async () => {
+  console.log("handleLogin ejecutado");
+  
+  if (email === "" || password === "") {
+    setMensaje("⚠️ Completa todos los campos");
+    return;
+  }
 
-    if (email === "leyva18g@gmail.com" && password === "1234") {
-      localStorage.setItem("auth", "true");
-      navigate("/dashboard");
-    } else {
-      setMensaje("❌ Datos incorrectos");
-    }
-  };
+  console.log("Mandando fetch a PHP...");
+
+  try {
+    const response = await fetch("http://localhost/alebrijes/login.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    console.log("Respuesta recibida:", response);
+    const data = await response.json();
+    console.log("Data:", data);
+
+   if (data.success) {
+  localStorage.setItem("auth", "true");
+  localStorage.setItem("usuario", JSON.stringify(data.usuario));
+
+  if (data.usuario.rol === "admin") {
+    navigate("/admin");
+  } else {
+    navigate("/");
+  }
+} 
+  } catch (error) {
+    console.log("Error:", error);
+    setMensaje("❌ Error al conectar con el servidor");
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -44,6 +67,13 @@ function Login() {
         <Button text="Iniciar sesión" onClick={handleLogin} />
 
         <p className="text-center mt-4 text-gray-600">{mensaje}</p>
+
+        <p className="text-center mt-4 text-gray-400 text-sm">
+  ¿No tienes cuenta?{" "}
+  <span onClick={() => navigate("/register")} className="text-orange-500 cursor-pointer font-semibold">
+    Regístrate
+  </span>
+</p>
       </div>
     </div>
   );
