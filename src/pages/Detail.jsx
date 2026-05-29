@@ -1,120 +1,107 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Button from "../components/Button";
 import ImageSlider from "../components/ImageSlider";
 import CardEmpresa from "../components/CardEmpresa";
-
-import huautla from "../assets/huautla.jpg";
-import sanpablo from "../assets/sanpablo.jpg";
-import capulalpam from "../assets/capulalpam.jpg";
-import sanmartin from "../assets/sanmartin.jpg";
-import mazunte from "../assets/mazunte.jpg";
-import hierve from "../assets/hierve.jpg";
 import Comentarios from "../components/Comentarios";
-
-const lugares = [
-  {
-    id: 1,
-    nombre: "Huautla de Jiménez",
-    descripcion: "Famoso por su cultura mazateca y el uso ceremonial de hongos sagrados. Un destino espiritual único en México.",
-    imagenes: [huautla, huautla, huautla, huautla],
-    empresas: [
-      { id: 1, nombre: "Tours Mazateca", direccion: "Calle Principal #12, Huautla", rfc: "TMA123456ABC" },
-      { id: 2, nombre: "Viajes Sierra Norte", direccion: "Av. Benito Juárez #45, Huautla", rfc: "VSN789012DEF" },
-      { id: 3, nombre: "Expediciones Oaxaca", direccion: "Calle Morelos #8, Huautla", rfc: "EOA345678GHI" },
-    ],
-  },
-  {
-    id: 2,
-    nombre: "San Pablo Villa de Etla",
-    descripcion: "Hogar de la zona arqueológica de Mitla, con impresionantes mosaicos de piedra únicos en Mesoamérica.",
-    imagenes: [sanpablo, sanpablo, sanpablo, sanpablo],
-    empresas: [
-      { id: 1, nombre: "Tours Mitla", direccion: "Calle Hidalgo #5, San Pablo", rfc: "TMI111222AAA" },
-      { id: 2, nombre: "Aventuras Zapotecas", direccion: "Av. Independencia #22, San Pablo", rfc: "AZA333444BBB" },
-    ],
-  },
-  {
-    id: 3,
-    nombre: "Capulálpam de Méndez",
-    descripcion: "Un pueblo serrano rodeado de bosques, ideal para el ecoturismo y el turismo comunitario.",
-    imagenes: [capulalpam, capulalpam, capulalpam, capulalpam],
-    empresas: [
-      { id: 1, nombre: "Ecoturismo Sierra Juárez", direccion: "Calle Juárez #3, Capulálpam", rfc: "ESJ555666CCC" },
-      { id: 2, nombre: "Bosques de Oaxaca", direccion: "Av. Principal #17, Capulálpam", rfc: "BOA777888DDD" },
-      { id: 3, nombre: "Turismo Comunitario", direccion: "Calle Reforma #9, Capulálpam", rfc: "TCA999000EEE" },
-    ],
-  },
-  {
-    id: 4,
-    nombre: "San Martín Tilcajete",
-    descripcion: "La capital mundial de los alebrijes de madera, figuras fantásticas talladas y pintadas a mano.",
-    imagenes: [sanmartin, sanmartin, sanmartin, sanmartin],
-    empresas: [
-      { id: 1, nombre: "Alebrijes Tours", direccion: "Calle Artesanos #1, San Martín", rfc: "ATO123789JJJ" },
-      { id: 2, nombre: "Magia Zapoteca", direccion: "Av. Central #33, San Martín", rfc: "MZA456012KKK" },
-    ],
-  },
-  {
-    id: 5,
-    nombre: "Mazunte",
-    descripcion: "Pueblo costero con tortugario, cosmética natural y playas tranquilas en la costa oaxaqueña.",
-    imagenes: [mazunte, mazunte, mazunte, mazunte],
-    empresas: [
-      { id: 1, nombre: "Tours Costa Oaxaca", direccion: "Playa Principal s/n, Mazunte", rfc: "TCO789345LLL" },
-      { id: 2, nombre: "Mar y Sierra", direccion: "Calle del Mar #7, Mazunte", rfc: "MYS012678MMM" },
-      { id: 3, nombre: "Ecotur Mazunte", direccion: "Av. Tortugario #2, Mazunte", rfc: "EMA345901NNN" },
-    ],
-  },
-  {
-    id: 6,
-    nombre: "Hierve el Agua",
-    descripcion: "Cascadas petrificadas que parecen congeladas en el tiempo, con albercas naturales y vistas increíbles.",
-    imagenes: [hierve, hierve, hierve, hierve],
-    empresas: [
-      { id: 1, nombre: "Tours Hierve", direccion: "Carretera Principal km 5, Hierve", rfc: "THI678234OOO" },
-      { id: 2, nombre: "Aventura Natural", direccion: "Calle Cascadas #4, Hierve", rfc: "ANA901567PPP" },
-    ],
-  },
-];
 
 function Detail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const lugar = lugares.find((l) => l.id === parseInt(id));
+  const [lugar, setLugar] = useState(null);
+  const [empresas, setEmpresas] = useState([]);
+  const [cargando, setCargando] = useState(true);
 
-  if (!lugar) return <p className="text-center mt-10">Lugar no encontrado.</p>;
+  useEffect(() => {
+    Promise.all([
+      fetch("http://localhost/alebrijes/pueblos.php").then((r) => r.json()),
+      fetch(`http://localhost/alebrijes/empresas.php?pueblo_id=${id}`).then((r) => r.json()),
+    ])
+      .then(([pueblosData, empresasData]) => {
+        if (pueblosData.success) {
+          const encontrado = pueblosData.pueblos.find((p) => String(p.id) === String(id));
+          setLugar(encontrado || null);
+        }
+        if (empresasData.success) setEmpresas(empresasData.empresas);
+        setCargando(false);
+      })
+      .catch(() => setCargando(false));
+  }, [id]);
+
+  if (cargando) return (
+    <div className="min-h-screen bg-stone-50">
+      <Navbar />
+      <div className="text-center py-16">
+        <p className="text-5xl mb-4">⏳</p>
+        <p className="text-gray-600 text-xl">Cargando...</p>
+      </div>
+    </div>
+  );
+
+  if (!lugar) return (
+    <div className="min-h-screen bg-stone-50">
+      <Navbar />
+      <p className="text-center mt-10">Lugar no encontrado.</p>
+    </div>
+  );
+
+  let imagenes;
+  try {
+    const parsed = JSON.parse(lugar.imagen_url);
+    imagenes = Array.isArray(parsed) && parsed.length > 0 ? parsed : ["https://placehold.co/800x400/f97316/white?text=Sin+imagen"];
+  } catch {
+    imagenes = lugar.imagen_url ? [lugar.imagen_url] : ["https://placehold.co/800x400/f97316/white?text=Sin+imagen"];
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-stone-50">
       <Navbar />
-
       <div className="p-8 max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">{lugar.nombre}</h1>
-        <p className="text-gray-500 text-lg mb-8">{lugar.descripcion}</p>
+        <h1 className="text-4xl font-bold text-teal-500 mb-2">{lugar.nombre}</h1>
+        <p className="text-gray-600 text-lg mb-8">{lugar.descripcion}</p>
 
         <div className="flex gap-8">
-          {/* Izquierda - Slider de imágenes */}
           <div className="w-3/5">
-            <ImageSlider imagenes={lugar.imagenes} nombre={lugar.nombre} />
+            <ImageSlider imagenes={imagenes} nombre={lugar.nombre} />
+
+            {/* Mapa */}
+            <div className="mt-6 rounded-2xl overflow-hidden border border-teal-100 shadow-sm">
+              <div className="bg-white px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-700"> Ubicación</span>
+                <span className="text-xs text-gray-400">{lugar.nombre}, Oaxaca</span>
+              </div>
+              <iframe
+                title="mapa"
+                width="100%"
+                height="300"
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                src={`https://www.google.com/maps?q=${encodeURIComponent(lugar.nombre + ", Oaxaca, México")}&output=embed`}
+              />
+            </div>
           </div>
 
-          {/* Derecha - Lista de empresas */}
           <div className="w-2/5">
-            <h2 className="text-2xl font-bold text-gray-700 mb-4">🧭 Empresas de Tours</h2>
-            {lugar.empresas.map((empresa) => (
-              <CardEmpresa
-                key={empresa.id}
-                {...empresa}
-                onClick={() => navigate(`/empresa/${empresa.id}`)}
-              />
-            ))}
+            <h2 className="text-2xl font-bold text-teal-500 mb-4">Empresas de Tours</h2>
+            {empresas.length === 0 ? (
+              <p className="text-gray-600">Aún no hay empresas registradas para este pueblo.</p>
+            ) : (
+              empresas.map((empresa) => (
+                <CardEmpresa
+                  key={empresa.id}
+                  {...empresa}
+                  onClick={() => navigate(`/empresa/${empresa.id}`)}
+                />
+              ))
+            )}
           </div>
         </div>
 
         <div className="mt-8">
           <Comentarios lugarId={lugar.id} />
-          <Button text="← Regresar" onClick={() => navigate("/dashboard")} />
+          <Button text="← Regresar" onClick={() => navigate("/")} variant="ghost" fullWidth={false} />
         </div>
       </div>
     </div>

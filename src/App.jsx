@@ -6,6 +6,8 @@ import Detail from "./pages/Detail";
 import Empresa from "./pages/Empresa";
 import Resumen from "./pages/Resumen";
 import Admin from "./pages/Admin";
+import Perfil from "./pages/Perfil";
+import NotFound from "./pages/NotFound";
 import RutaAdmin from "./components/RutaAdmin";
 
 function App() {
@@ -18,6 +20,7 @@ function App() {
         <Route path="/lugar/:id" element={<Detail />} />
         <Route path="/empresa/:id" element={<Empresa />} />
         <Route path="/resumen" element={<Resumen />} />
+        <Route path="/perfil" element={<Perfil />} />
         <Route
           path="/admin"
           element={
@@ -26,6 +29,7 @@ function App() {
             </RutaAdmin>
           }
         />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

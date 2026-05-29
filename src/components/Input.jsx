@@ -4,7 +4,7 @@ function Input({ type, placeholder, onChange }) {
       type={type}
       placeholder={placeholder}
       onChange={onChange}
-      className="w-full border border-gray-300 rounded-lg p-3 mb-4 outline-none focus:ring-2 focus:ring-blue-500"
+      className="w-full border border-gray-300 rounded-lg p-3 mb-4 outline-none focus:ring-2 focus:ring-teal-500"
     />
   );
 }
